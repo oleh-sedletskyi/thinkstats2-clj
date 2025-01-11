@@ -321,3 +321,9 @@
 ;;Each record in the NSFG dataset represents a person who provided honest answers to many personal and difficult questions. We can use this data to answer statistical questions about family
 ;;life, reproduction, and health. At the same time, we have an obligation to consider the people represented by the data, and to afford them respect and gratitude.
 ;;
+;;## 1.9 Exercises
+;;
+;;**Exercise 1.1** In the repository you downloaded, you should find a file named `chap01ex.clj` in the `exercises` folder, which is an Clay notebook. You can open
+;;
+;;TODO: Change `-` to `_` in all column names
+;;

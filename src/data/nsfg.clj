@@ -28,9 +28,9 @@
   [type raw-value]
   (when (seq raw-value)
     (case type
-      ("str12")          raw-value
-      ("byte" "int")     (Long/parseLong raw-value)
-      ("float" "double") (Double/parseDouble raw-value))))
+      ("str12" "str8")          raw-value
+      ("byte" "int" "long")     (Long/parseLong raw-value)
+      ("float" "double")        (Double/parseDouble raw-value))))
 
 (defn make-row-parser
   "Parse a row from a Stata data file according to the specification in `dict`.
@@ -107,21 +107,39 @@
                               float
                               (+ w-lb)))))))
 
+(defn read-dataset
+  "Return dataset by reading dictionary and data files located in 'resources' folder"
+  [dict-name data-name]
+  (let [path (str "resources" java.io.File/separator)
+        dict-path (str path dict-name)
+        data-path (str path data-name)
+        ds-name (subs dict-name 0 (str/index-of dict-name "."))
+        dict   (read-dictionary dict-path)
+        header (map (comp keyword :name) dict)]
+    (with-open [r (reader data-path)]
+      (->> (tc/dataset (read-dictionary-data dict r)
+                       {:layout :as-rows
+                        :column-names header
+                        :dataset-name ds-name})))))
+
 (defn read-fem-preg-dataset
   "Read Stata data set, return an dataset."
   ([]
-   (read-fem-preg-dataset "resources/2002FemPreg.dct" "resources/2002FemPreg.dat.gz"))
-  ([dict-path data-path]
-   (let [dict   (read-dictionary dict-path)
-         header (map (comp keyword :name) dict)]
-     (with-open [r (reader data-path)]
-       (->> (tc/dataset (read-dictionary-data dict r)
-                        {:layout :as-rows
-                         :column-names header
-                         :dataset-name "2002FemPreg"})
-            (clean-fem-preg))))))
+   (read-fem-preg-dataset "2002FemPreg.dct" "2002FemPreg.dat.gz"))
+  ([dict data]
+   (->> (read-dataset dict data)
+        (clean-fem-preg))))
 
 (def read-fem-preg-dataset (memoize read-fem-preg-dataset)) ;;  cache results of reading the ds to speed up rendering. TODO: Remove
+
+(defn read-fem-resp-dataset
+  "Read Stata data set, return an dataset."
+  ([]
+   (read-fem-resp-dataset "2002FemResp.dct" "2002FemResp.dat.gz"))
+  ([dict data]
+   (read-dataset dict data)))
+
+(def read-fem-resp-dataset (memoize read-fem-resp-dataset))
 
 (defn get-column-frequency-by-index [ds col index]
   (-> (tc/column ds col)
